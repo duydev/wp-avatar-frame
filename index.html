@@ -7,7 +7,7 @@
     <meta name="author" content="Trần Nhật Duy">
 
     <title>Tạo Ảnh Đại Diện</title>
-
+    <link rel="shortcut icon" type="image/ico" href="img/favicon.ico" />
     <!-- Bootstrap -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/croppic.css">
@@ -25,7 +25,7 @@
     <div class="container">
       <div class="row">
         <div class="col-md-12">
-          <h1 class="text-center pagetitle">Tạo Ảnh Đại Diện</h1>
+          <h1 class="text-center text-uppercase pagetitle">Tạo Ảnh Đại Diện</h1>
         </div>
       </div>
       <div class="row">
@@ -47,8 +47,8 @@
                 <button id="downloadImg" type="button" class="col-md-5 btn btn-success"><i class="glyphicon glyphicon-save"></i> Tải Ảnh</button>
                 <button id="zoomIn" type="button" class="col-md-5 btn btn-default"><i class="glyphicon glyphicon-zoom-in"></i> Phóng To</button>
                 <button id="zoomOut"type="button" class="col-md-5 btn btn-default"><i class="glyphicon glyphicon-zoom-out"></i> Thu Nhỏ</button>
-                <button id="rotateLeft" type="button" class="col-md-5 btn btn-default"><i class="glyphicon glyphicon-save"></i> Xoay Trái</button>
-                <button id="rotateRight" type="button" class="col-md-5 btn btn-default"><i class="glyphicon glyphicon-save"></i> Xoay Phải</button>
+                <button id="rotateLeft" type="button" class="col-md-5 btn btn-default"><img src="img/rotateleft.png"/> Xoay Trái</button>
+                <button id="rotateRight" type="button" class="col-md-5 btn btn-default"><img src="img/rotateright.png"/> Xoay Phải</button>
               </div>
             </div>
             <div class="row">
@@ -70,9 +70,12 @@
         </div>
       </div>
     </div>
-    <script src="js/jquery-2.2.3.min.js"></script>
-    <script src="js/croppic.min.js"></script>
-    <script src="js/custom.js"></script>
+    <script type="text/javascript" src="js/jquery-2.2.3.min.js"></script>
+    <script type="text/javascript" src="js/jquery-migrate-1.4.0.js"></script>
+    <script type="text/javascript" src="js/croppic.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/custom.js"></script>
     <script>
       $(document).ready(function(){
         loadFrameList();
@@ -137,6 +140,10 @@
             rotate = 0;
           }
           $('.cropControlRotateRight')[0].click();
+        });
+
+        $('#frame').change(function(){
+          changeFrame();
         });
       });
     </script>

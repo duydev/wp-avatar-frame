@@ -2,7 +2,7 @@ var canvas = document.getElementById('framezone');
 var context = canvas.getContext('2d');
 var downloadURL = undefined;
 var framedir = 'img/frame/';
-var frameName = framedir + 'mhx2016.png';
+var frameName = framedir + '';
 var downloadFileName = 'avatar.jpg';
 var rotate = 0;
 
@@ -50,11 +50,8 @@ function cropImg()
       break;
   }
   context.rotate( rotate *Math.PI/180);
-  console.log('Xoay' + rotate + 'do.');
-
   var imageObj = new Image();
   imageObj.onload = function() {
-
     var ratio = (imageObj.height/parseInt($('.cropImgWrapper img').css('height')));
     var sX = parseInt($('.cropImgWrapper img').css('left')) * -1 * ratio;
     var sY = parseInt($('.cropImgWrapper img').css('top')) * -1 * ratio;
@@ -87,8 +84,11 @@ function saveImg(data, filename)
   var link = document.createElement('a');
     link.download = filename;
     link.href = data;
-    //link.click();
-    link.dispatchEvent(clickEvent);
+    if ($.browser.mozilla) {
+      link.dispatchEvent(clickEvent);
+    } else {
+      link.click(); 
+    }    
 }
 
 function loadFrameList()
@@ -98,8 +98,13 @@ function loadFrameList()
     $.each(data, function(i, item) {
       $('#frame').append('<option value="' + data[i].value + '">' + data[i].title + '</option>');
     })
-    frameName = framedir + data[0].value + '.png';
+    frameName = framedir + data[0].value;
     frameload();
   });
 }
 
+function changeFrame()
+{
+  frameName = framedir + $('#frame').val();
+  frameload();
+}
