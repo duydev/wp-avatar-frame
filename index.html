@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Trần Nhật Duy">
+
+    <title>Tạo Ảnh Đại Diện</title>
+
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/croppic.css">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <!-- Author: Tran Nhat Duy (tui@duydev.me) -->
+    <!-- Date: 17/05/2016 16:17:00 -->
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <h1 class="text-center pagetitle">Tạo Ảnh Đại Diện</h1>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-8">
+          <div id="cropzone"></div>
+          <canvas id="framezone" width="620" height="620"></canvas>
+        </div>
+        <div class="col-md-4">
+          <div class="container">
+            <div class="row">
+              <div class="col-md-6">
+                <h3>Hướng dẫn:</h3>
+                <p>Vui lòng đọc kỹ hướng dẫn sử dụng trước khi dùng.</p>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4">
+                <button id="uploadImg" type="button" class="col-md-5 btn btn-primary"><i class="glyphicon glyphicon-open"></i> Chọn Ảnh</button>
+                <button id="downloadImg" type="button" class="col-md-5 btn btn-success"><i class="glyphicon glyphicon-save"></i> Tải Ảnh</button>
+                <button id="zoomIn" type="button" class="col-md-5 btn btn-default"><i class="glyphicon glyphicon-zoom-in"></i> Phóng To</button>
+                <button id="zoomOut"type="button" class="col-md-5 btn btn-default"><i class="glyphicon glyphicon-zoom-out"></i> Thu Nhỏ</button>
+                <button id="rotateLeft" type="button" class="col-md-5 btn btn-default"><i class="glyphicon glyphicon-save"></i> Xoay Trái</button>
+                <button id="rotateRight" type="button" class="col-md-5 btn btn-default"><i class="glyphicon glyphicon-save"></i> Xoay Phải</button>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4">
+                <div class="control-group">
+                  <label for="frame">Đổi Khung</label>
+                  <select class="col-md-12" name="frame" id="frame">
+                    <option value="mhx2016">Mùa Hè Xanh 2016</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <h3 class="text-center">&copy 2016 - Xây dựng và phát triển bởi <a href="mailto:tui@duydev.me">Trần Nhật Duy</a>. Toàn quyền bảo lưu.</h3>
+        </div>
+      </div>
+    </div>
+    <script src="js/jquery-2.2.3.min.js"></script>
+    <script src="js/croppic.min.js"></script>
+    <script src="js/custom.js"></script>
+    <script>
+      $(document).ready(function(){
+        loadFrameList();
+
+        var cropperOptions = {
+              processInline:true,
+              imgEyecandy:false,
+              //loaderHtml:'<img class="loader" src="img/loader.gif" >',
+              rotateFactor: 90,
+              zoomFactor:30,
+            }
+
+        var cropper = new Croppic('cropzone', cropperOptions);
+
+        $('#uploadImg').click(function(){
+          rotate = 0;
+          $('.cropImgWrapper').empty();
+          $('#cropzone_imgUploadField').click();
+        });
+
+        $('#downloadImg').click(function(){
+          cropImg();
+        });
+
+        $('#zoomIn').click(function(){
+          if($('.cropImgWrapper img').attr('src') === undefined)
+          {
+            return;
+          }
+          $('.cropControlZoomIn')[0].click();
+        });
+
+        $('#zoomOut').click(function(){
+          if($('.cropImgWrapper img').attr('src') === undefined)
+          {
+            return;
+          }
+          $('.cropControlZoomOut')[0].click();
+        });
+
+        $('#rotateLeft').click(function(){
+          if($('.cropImgWrapper img').attr('src') === undefined)
+          {
+            return;
+          }
+          rotate -= 90;
+          if(rotate == -360)
+          {
+            rotate = 0;
+          }
+          $('.cropControlRotateLeft')[0].click();
+        });
+
+        $('#rotateRight').click(function(){
+          if($('.cropImgWrapper img').attr('src') === undefined)
+          {
+            return;
+          }
+          rotate += 90;
+          if(rotate == 360)
+          {
+            rotate = 0;
+          }
+          $('.cropControlRotateRight')[0].click();
+        });
+      });
+    </script>
+  </body>
+</html>

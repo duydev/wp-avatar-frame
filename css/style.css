@@ -1,0 +1,40 @@
+.pagetitle {
+  color: blue;
+  text-transform: uppercase;
+}
+
+#cropzone {
+      background: #f8f8f8;
+      width: 620px;
+      height: 620px;
+      position:relative; /* or fixed or absolute */
+    }
+
+#framezone {
+      position: absolute;
+      top: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+.cropControls, #cropzone form {
+  display: none;
+}
+
+.loader {
+  margin: 235px;
+  width: 150px;
+  height: 150px;
+}
+
+.btn {
+  margin: 0.4em;
+}
+
+.control-group {
+  margin: 0.4em;
+}
+
+.control-group label {
+  display: block;
+}
