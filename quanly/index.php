@@ -113,6 +113,7 @@
                   if(data.success)
                   {
                     $('.message').html('<div class="alert alert-success" role="alert">' + data.message + '</div>');
+                    $('form input').val(''); // Clean Form
                     loadTable();                                        
                   } else {
                     $('.message').html('<div class="alert alert-danger" role="alert">' + data.message + '</div>');
