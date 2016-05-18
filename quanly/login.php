@@ -1,30 +1,10 @@
 <?php
   session_start();
-  include('db.php');
-  
   if(isset($_SESSION['login'])){
     header("Location: index.php");
   }
-
-  if(isset($_POST['submit'])){
-    $usr = htmlentities($_POST['username']);
-    $pwd = md5(htmlentities($_POST['password']));
-    
-    $sql = "SELECT id, username FROM users WHERE username = '$usr' AND password = '$pwd'";
-    $result = $conn->query($sql);
-  
-    if ($result->num_rows > 0) {
-      $row = $result->fetch_row();
-      $_SESSION['login'] = 1;
-      $_SESSION['uid'] = $row[0];
-      $_SESSION['uname'] = $row[1];
-      header("Location: index.php");
-    }
-
-    $error = true;
-    $message = "Đăng nhập thất bại. Vui lòng thử lại.";
-  }
 ?>
+
 <!DOCTYPE html>
 <html lang="vi">
   <head>
@@ -50,16 +30,8 @@
       <div class="row">
         <div class="col-md-offset-4 col-md-4">
           <h1 class="text-center text-uppercase">Đăng Nhập</h1>
-          <div class="message">
-            <?php
-              if($error):
-            ?>
-              <div class="alert alert-danger" role="alert"><?php echo $message; ?></div>
-            <?php
-              endif;
-            ?>
-          </div>
-          <form id="myForm" method="POST" action="login.php">
+          <div class="message"></div>
+          <form>
             <div class="form-group">
               <label for="username">Tên đăng nhập</label>
               <input type="text" class="form-control" id="username" name="username" placeholder="Nhập tên đăng nhập...">
@@ -75,5 +47,22 @@
     </div>
     <script type="text/javascript" src="../js/jquery-2.2.3.min.js"></script>
     <script src="../js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+      $('form').submit(function(e) {
+        e.preventDefault();
+        $.post('http://avatar.ithu.tech/api/user/?func=login', {username: $('#username').val(), password: $('#password').val()}, function(data, textStatus, xhr) {
+            if(data.success)
+            {
+              console.log('Đăng nhập thành công.');
+              location.reload();
+            } else {
+              $('.message').html('<div class="alert alert-danger" role="alert">'+data.message+'</div>');
+            }
+        }).fail(function() {
+          console.log('Đăng nhập gặp lỗi.');
+        });
+        return;
+      });
+    </script>
   </body>
 </html>

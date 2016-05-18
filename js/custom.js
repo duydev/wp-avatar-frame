@@ -1,4 +1,4 @@
-var canvas = document.getElementById('framezone');
+var canvas = document.getElementById('ImgCanvas');
 var context = canvas.getContext('2d');
 var downloadURL = undefined;
 var framedir = 'img/frame/';
@@ -94,7 +94,7 @@ function saveImg(data, filename)
 function loadFrameList()
 {
   $('#frame').html('');
-  $.getJSON("api/index.php", function(data) {
+  $.getJSON("api/frame/?func=selectList", function(data) {
     $.each(data, function(i, item) {
       $('#frame').append('<option value="' + data[i].value + '">' + data[i].title + '</option>');
     })

@@ -1,56 +1,9 @@
 <?php
 	session_start();
-	include('db.php');
+	include('../inc/mainfile.php');
 
 	if(!isset($_SESSION['login'])){
 	  header("Location: login.php");
-	}
-
-	$message = '';
-
-	if(isset($_POST['submit'])){
-		$success = true;
-		$uploadDir = '../img/frame/';
-		$uploadFile = $uploadDir.basename($_FILES["fileUpload"]["name"]);
-		$imageFileType = pathinfo($uploadFile,PATHINFO_EXTENSION);
-		$check = getimagesize($_FILES["fileUpload"]["tmp_name"]);
-		if($check === false) {
-			$success = false;
-			$message .= "File ảnh không hợp lệ. Vui lòng chọn ảnh khác.\n";
-		}
-		if (file_exists($uploadFile)) {
-		    $success = false;
-			$message .= "File này đã tồn tại. Vui lòng đổi tên khác.\n";
-		}
-		if ($_FILES["fileUpload"]["size"] > 1000000) { // 1MB
-			$success = false;
-		    $message .= "File ảnh có kích thước vượt mức cho phép. Vui lòng chọn ảnh khác.\n";
-		}
-		if($imageFileType != "png" && $imageFileType != "PNG") {
-		    $success = false;
-			$message .= "File ảnh có kiểu không hợp lệ. Vui lòng chọn ảnh PNG khác.\n";
-		}
-		if (!$success) {
-		    $message .= "Tập tin chưa được tải lên.";
-		} else {
-			if (move_uploaded_file($_FILES["fileUpload"]["tmp_name"], $uploadFile)) {
-			    //$message .= "Tập tin ".basename( $_FILES["fileUpload"]["name"])." được tải lên thành công.";
-			    $title = htmlentities($_POST['title']);
-			    $value = basename( $_FILES["fileUpload"]["name"]);
-			    $url = '/img/frame/'.$value;
-			    $created_at = time();
-			    $sql = "INSERT INTO frames(title, url, value, created_at) VALUES ('".$title."', '".$url."', '".$value."', ".$created_at.")";
-			    if ($conn->query($sql) === TRUE) {
-			        $message .= "Thêm thành công.";
-			    } else {
-			    	$success = false;
-			        $message .= "Lỗi: " . $sql . "<br>" . $conn->error;
-			    }
-			} else {
-				$success = false;
-			    $message .= "Tập tin gặp lỗi trong quá trình tải.";
-			}
-		}
 	}
 ?>
 <!DOCTYPE html>
@@ -91,11 +44,11 @@
 	        	</ul>
 	            <ul class="nav navbar-nav navbar-right">
 	                <li class="dropdown">
-	                  	<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Xin chào, <?php echo $_SESSION['uname']; ?> <span class="caret"></span></a>
+	                  	<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Xin chào, <?php echo $_SESSION['userfullname']; ?> <span class="caret"></span></a>
 	                  <ul class="dropdown-menu">
 	                    <li><a href="#">Đổi Mật Khẩu</a></li>
 	                    <li role="separator" class="divider"></li>
-	                    <li><a href="logout.php">Đăng Xuất</a></li>
+	                    <li><a role="button" onclick="logout()">Đăng Xuất</a></li>
 	                  </ul>
 	                </li>
 	              </ul>
@@ -105,18 +58,8 @@
     <div class="container">
     	<div class="row">
     		<div class="col-md-12">
-    			<div class="message">
-    				<?php
-    					if(isset($success)) {
-    						if($success) {
-    							echo '<div class="alert alert-success" role="alert">'.$message.'</div>';
-    						} else {
-    							echo '<div class="alert alert-danger" role="alert">'.$message.'</div>';
-    						}
-    					}
-    				?>
-    			</div>
-    			<form action="index.php" method="POST" enctype="multipart/form-data"> 
+    			<div class="message"></div>
+    			<form> 
     			  <div class="form-group">
     			    <label for="title">Tiêu đề</label>
     			    <input type="text" class="form-control" id="title" name="title" placeholder="Nhập tiêu đề...">
@@ -139,26 +82,6 @@
     					<th>Hình ảnh</th>
     					<th>Xóa?</th>
     				</tr>
-    				<?php 
-    					$sql = "SELECT id, title, url FROM frames";
-    					$result = $conn->query($sql);
-    					if ($result->num_rows > 0) {
-    						while($row = $result->fetch_assoc()) {
-    				?>
-    				<tr>
-    					<td><?php echo $row['id']; ?></td>
-    					<td><?php echo $row['title']; ?></td>
-    					<td><img alt="<?php echo $row['title']; ?>" src="<?php echo $row['url']; ?>" \></td>
-    					<td><a href="delete.php?id=<?php echo $row['id']; ?>">Xóa</a></td>
-    				</tr>
-					<?php
-							}
-						} else {
-					?>
-						<tr><td colspan="4">Không có dữ liệu nào để hiển thị.</td></tr>
-					<?php
-						}
-					?>
     			</table>
     		</div>
     	</div>
@@ -170,5 +93,66 @@
     </div>
     <script type="text/javascript" src="../js/jquery-2.2.3.min.js"></script>
     <script src="../js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            loadTable();
+
+            $("form").submit(function(e){
+              event.preventDefault();
+              
+              var formData = new FormData($(this)[0]);
+              $.ajax({
+                url: '../api/frame/?func=add',
+                type: 'POST',
+                data: formData,
+                async: false,
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function (data) {
+                  if(data.success)
+                  {
+                    $('.message').html('<div class="alert alert-success" role="alert">' + data.message + '</div>');
+                    loadTable();                                        
+                  } else {
+                    $('.message').html('<div class="alert alert-danger" role="alert">' + data.message + '</div>');
+                  }
+                }
+              }); 
+
+              return false;
+            });
+        });
+
+        function logout()
+        {
+            $.get('../api/user/?func=logout', function(data) {
+                console.log("Đăng xuất thành công.");
+                location.reload();
+            });
+        }
+
+        function loadTable()
+        {
+            $('table tr').not(':first').remove();
+            $.getJSON( "../api/frame/?func=framelist", function( data ) {
+                $.each( data, function( idx, item ) {
+                  $('table').append('<tr><td>' + data[idx].id + '</td><td>' + data[idx].title + '</td><td><img alt="' + data[idx].title + '" src="' + data[idx].url + '" /></td><td><a role="button" onclick="f_delete(' + data[idx].id + ')">Xóa</a></td></tr>');
+                });
+                if(data[0] === undefined)
+                {
+                    $('table').append('<tr><td colspan="4" class="text-center">Không có dữ liệu để hiển thị.</td></tr>');
+                }
+            });
+        }
+
+        function f_delete(id)
+        {
+            $.getJSON('../api/frame/?func=delete', {"id": id}, function(data) {
+                $('.message').html('<div class="alert alert-success" role="alert">' + data.message + '</div>');
+                loadTable();
+            });
+        }
+    </script>
   </body>
 </html>

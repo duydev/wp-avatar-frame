@@ -10,7 +10,7 @@
       position:relative; /* or fixed or absolute */
     }
 
-#framezone {
+#ImgCanvas {
       position: absolute;
       top: 0;
       z-index: 1;
