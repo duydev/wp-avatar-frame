@@ -9,7 +9,7 @@ import Button from 'react-bootstrap/Button';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'cropperjs/dist/cropper.css';
 import defaultImage from './assets/default-image.jpg';
-import { toRatio, toZoom, toRotate, toDegree } from './utils';
+import { toRatio, toZoom, toDegree } from './utils';
 import { FiZoomIn, FiZoomOut, FiRotateCcw, FiRotateCw } from 'react-icons/fi';
 import loRound from 'lodash/round';
 
@@ -128,8 +128,6 @@ function App() {
           return;
         }
 
-        console.log('ZOOM', { ...e.detail, newRatio });
-
         if (newRatio > 5) {
           e.preventDefault();
 
@@ -159,8 +157,6 @@ function App() {
 
   useEffect(() => {
     if (isDisabled) return;
-
-    console.log('ROTATE', rotate, toDegree(rotate));
 
     cropRef.current.rotateTo(toDegree(rotate));
   }, [isDisabled, rotate]);
