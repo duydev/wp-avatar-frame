@@ -12,6 +12,7 @@ import defaultImage from './assets/default-image.jpg';
 import { toRatio, toZoom, toDegree } from './utils';
 import { FiZoomIn, FiZoomOut, FiRotateCcw, FiRotateCw } from 'react-icons/fi';
 import loRound from 'lodash/round';
+import FileBase64 from 'react-file-base64';
 
 const Wrapper = styled.div`
   background-color: #000;
@@ -24,6 +25,10 @@ const Wrapper = styled.div`
       display: block;
       max-width: 100%;
     }
+  }
+
+  .upload-file {
+    display: none;
   }
 `;
 
@@ -97,6 +102,16 @@ function App() {
     cropRef.current.scale(1, 1);
   };
 
+  const handleOpenImageSelector = () => {
+    document.querySelector('.upload-file input[type="file"]').click();
+  };
+
+  const handleChangeImage = file => {
+    setZoom(0);
+    setRotate(0);
+    cropRef.current.replace(file.base64);
+  };
+
   useEffect(() => {
     cropRef.current = new Cropper(document.getElementById('image'), {
       viewMode: 0,
@@ -115,6 +130,8 @@ function App() {
       cropBoxResizable: false,
       wheelZoomRatio: 0.1,
       ready: () => {
+        setZoom(50);
+        setRotate(50);
         setIsDisabled(false);
       },
       zoom: e => {
@@ -145,6 +162,7 @@ function App() {
     });
 
     return () => {
+      setIsDisabled(true);
       cropRef.current.destroy();
     };
   }, []);
@@ -163,15 +181,15 @@ function App() {
 
   return (
     <Wrapper>
-      <Container>
-        <Row>
+      <Container className="m3">
+        <Row className="m3">
           <Col>
             <div className="image-wrapper">
               <img id="image" src={defaultImage} alt="image" />
             </div>
           </Col>
         </Row>
-        <Row>
+        <Row className="m3">
           <Col>
             <Button disabled={isDisabled} onClick={handleZoomOutClick}>
               <FiZoomOut />
@@ -190,7 +208,7 @@ function App() {
             </Button>
           </Col>
         </Row>
-        <Row>
+        <Row className="m3">
           <Col>
             <Button disabled={isDisabled} onClick={handleRotateLeftClick}>
               <FiRotateCcw />
@@ -225,8 +243,16 @@ function App() {
               Reset
             </Button>
           </Col>
+          <Col>
+            <Button disabled={isDisabled} onClick={handleOpenImageSelector}>
+              Đổi hình
+            </Button>
+          </Col>
         </Row>
       </Container>
+      <div className="upload-file">
+        <FileBase64 onDone={handleChangeImage} />
+      </div>
     </Wrapper>
   );
 }
