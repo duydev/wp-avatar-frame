@@ -6,13 +6,12 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
-
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'cropperjs/dist/cropper.css';
-
 import defaultImage from './assets/default-image.jpg';
-
-const ZOOM_STEP = 10;
+import { toRatio, toZoom, toRotate, toDegree } from './utils';
+import { FiZoomIn, FiZoomOut, FiRotateCcw, FiRotateCw } from 'react-icons/fi';
+import loRound from 'lodash/round';
 
 const Wrapper = styled.div`
   background-color: #000;
@@ -30,46 +29,77 @@ const Wrapper = styled.div`
 
 function App() {
   const cropRef = useRef(null);
-  const [ready, setReady] = useState(false);
-  const [scale, setScale] = useState(50); // %
+  const [isDisabled, setIsDisabled] = useState(true);
+  const [zoom, setZoom] = useState(50);
+  const [rotate, setRotate] = useState(50);
 
-  const handleScaleChange = e => {
-    if (!ready) {
-      return;
-    }
+  const handleZoomChange = e => {
+    if (isDisabled) return;
 
-    const newValue = +e.target.value;
-
-    setScale(newValue);
+    setZoom(+e.target.value);
   };
 
   const handleZoomOutClick = () => {
-    if (!ready) {
-      return;
-    }
+    if (isDisabled) return;
 
-    let newValue = scale - ZOOM_STEP;
-    newValue = newValue < 0 ? 0 : newValue;
-
-    setScale(newValue);
+    setZoom(zoom - 5);
   };
 
   const handleZoomInClick = () => {
-    if (!ready) {
-      return;
+    if (isDisabled) return;
+
+    setZoom(zoom + 5);
+  };
+
+  const handleRotateChange = e => {
+    if (isDisabled) return;
+
+    setRotate(+e.target.value);
+  };
+
+  const handleRotateLeftClick = () => {
+    if (isDisabled) return;
+
+    const newRotate = rotate - 25;
+
+    if (newRotate >= 0) {
+      setRotate(newRotate);
     }
+  };
 
-    let newValue = scale + ZOOM_STEP;
-    newValue = newValue > 100 ? 100 : newValue;
+  const handleRotateRightClick = () => {
+    if (isDisabled) return;
 
-    setScale(newValue);
+    const newRotate = rotate + 25;
+
+    if (newRotate <= 100) {
+      setRotate(newRotate);
+    }
+  };
+
+  const handleFlipHorizontal = () => {
+    const { scaleX, scaleY } = cropRef.current.getData();
+    const newScaleX = -1 * scaleX;
+
+    cropRef.current.scale(newScaleX, scaleY);
+  };
+
+  const handleFlipVertical = () => {
+    const { scaleX, scaleY } = cropRef.current.getData();
+    const newScaleY = -1 * scaleY;
+
+    cropRef.current.scale(scaleX, newScaleY);
+  };
+
+  const handleReset = () => {
+    setZoom(50);
+    setRotate(50);
+    cropRef.current.scale(1, 1);
   };
 
   useEffect(() => {
-    const image = document.getElementById('image');
-
-    cropRef.current = new Cropper(image, {
-      viewMode: 3,
+    cropRef.current = new Cropper(document.getElementById('image'), {
+      viewMode: 0,
       dragMode: 'move',
       initialAspectRatio: 1,
       aspectRatio: 1,
@@ -83,23 +113,57 @@ function App() {
       autoCropArea: 1,
       cropBoxMovable: false,
       cropBoxResizable: false,
+      wheelZoomRatio: 0.1,
       ready: () => {
-        console.log('READY');
-        setReady(true);
+        setIsDisabled(false);
+      },
+      zoom: e => {
+        const { ratio, originalEvent } = e.detail;
+        const newRatio = loRound(ratio, 1);
+
+        if (originalEvent) {
+          e.preventDefault();
+
+          setZoom(toZoom(newRatio));
+          return;
+        }
+
+        console.log('ZOOM', { ...e.detail, newRatio });
+
+        if (newRatio > 5) {
+          e.preventDefault();
+
+          setZoom(100);
+          return;
+        }
+
+        if (newRatio < 0.1) {
+          e.preventDefault();
+
+          setZoom(0);
+          return;
+        }
       }
     });
 
-    console.log('MOUNTED');
-
     return () => {
       cropRef.current.destroy();
-      console.log('UNMOUNTED');
     };
   }, []);
 
   useEffect(() => {
-    cropRef.current.scale(scale * 0.02);
-  }, [scale]);
+    if (isDisabled) return;
+
+    cropRef.current.zoomTo(toRatio(zoom));
+  }, [isDisabled, zoom]);
+
+  useEffect(() => {
+    if (isDisabled) return;
+
+    console.log('ROTATE', rotate, toDegree(rotate));
+
+    cropRef.current.rotateTo(toDegree(rotate));
+  }, [isDisabled, rotate]);
 
   return (
     <Wrapper>
@@ -113,39 +177,56 @@ function App() {
         </Row>
         <Row>
           <Col>
-            <Button disabled={!ready} onClick={handleZoomOutClick}>
-              Thu nhỏ
+            <Button disabled={isDisabled} onClick={handleZoomOutClick}>
+              <FiZoomOut />
             </Button>
           </Col>
           <Col>
             <Form.Range
-              disabled={!ready}
-              value={scale}
-              onChange={handleScaleChange}
+              disabled={isDisabled}
+              value={zoom}
+              onChange={handleZoomChange}
             />
           </Col>
           <Col>
-            <Button disabled={!ready} onClick={handleZoomInClick}>
-              Phóng lớn
+            <Button disabled={isDisabled} onClick={handleZoomInClick}>
+              <FiZoomIn />
             </Button>
           </Col>
         </Row>
         <Row>
           <Col>
-            <Button disabled={!ready} onClick={handleZoomOutClick}>
-              Xoay trái
+            <Button disabled={isDisabled} onClick={handleRotateLeftClick}>
+              <FiRotateCcw />
             </Button>
           </Col>
           <Col>
             <Form.Range
-              disabled={!ready}
-              value={scale}
-              onChange={handleScaleChange}
+              disabled={isDisabled}
+              value={rotate}
+              onChange={handleRotateChange}
             />
           </Col>
           <Col>
-            <Button disabled={!ready} onClick={handleZoomInClick}>
-              Xoay phải
+            <Button disabled={isDisabled} onClick={handleRotateRightClick}>
+              <FiRotateCw />
+            </Button>
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <Button disabled={isDisabled} onClick={handleFlipVertical}>
+              Lật dọc
+            </Button>
+          </Col>
+          <Col>
+            <Button disabled={isDisabled} onClick={handleFlipHorizontal}>
+              Lật ngang
+            </Button>
+          </Col>
+          <Col>
+            <Button disabled={isDisabled} onClick={handleReset}>
+              Reset
             </Button>
           </Col>
         </Row>
