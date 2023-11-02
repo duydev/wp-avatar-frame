@@ -112,6 +112,16 @@ function App() {
     cropRef.current.replace(file.base64);
   };
 
+  const handleDownloadImage = () => {
+    cropRef.current.crop();
+
+    const data = cropRef.current.getCroppedCanvas().toDataURL();
+
+    // cropRef.current.clear();
+
+    console.log(data);
+  };
+
   useEffect(() => {
     cropRef.current = new Cropper(document.getElementById('image'), {
       viewMode: 0,
@@ -124,15 +134,18 @@ function App() {
       center: false,
       highlight: false,
       background: false,
-      autoCrop: false,
-      autoCropArea: 1,
       cropBoxMovable: false,
       cropBoxResizable: false,
-      wheelZoomRatio: 0.1,
       ready: () => {
         setZoom(50);
         setRotate(50);
         setIsDisabled(false);
+        cropRef.current.setCropBoxData({
+          top: 0,
+          left: 0,
+          width: 300,
+          height: 300
+        });
       },
       zoom: e => {
         const { ratio, originalEvent } = e.detail;
@@ -250,6 +263,11 @@ function App() {
           <Col>
             <Button disabled={isDisabled} onClick={handleOpenImageSelector}>
               Đổi hình
+            </Button>
+          </Col>
+          <Col>
+            <Button disabled={isDisabled} onClick={handleDownloadImage}>
+              Tải hình
             </Button>
           </Col>
         </Row>
