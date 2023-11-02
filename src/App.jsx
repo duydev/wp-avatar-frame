@@ -130,6 +130,25 @@ function App() {
             </Button>
           </Col>
         </Row>
+        <Row>
+          <Col>
+            <Button disabled={!ready} onClick={handleZoomOutClick}>
+              Xoay trái
+            </Button>
+          </Col>
+          <Col>
+            <Form.Range
+              disabled={!ready}
+              value={scale}
+              onChange={handleScaleChange}
+            />
+          </Col>
+          <Col>
+            <Button disabled={!ready} onClick={handleZoomInClick}>
+              Xoay phải
+            </Button>
+          </Col>
+        </Row>
       </Container>
     </Wrapper>
   );
