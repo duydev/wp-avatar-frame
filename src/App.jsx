@@ -170,7 +170,11 @@ function App() {
   useEffect(() => {
     if (isDisabled) return;
 
-    cropRef.current.zoomTo(toRatio(zoom));
+    try {
+      cropRef.current.zoomTo(toRatio(zoom));
+    } catch {
+      //
+    }
   }, [isDisabled, zoom]);
 
   useEffect(() => {
