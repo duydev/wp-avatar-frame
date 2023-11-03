@@ -7,7 +7,6 @@ import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 
-import { toZoom, toDegree } from './utils';
 import { FiZoomIn, FiZoomOut, FiRotateCcw, FiRotateCw } from 'react-icons/fi';
 import loRound from 'lodash/round';
 import FileBase64 from 'react-file-base64';
@@ -50,54 +49,76 @@ function App() {
   const [rotate, setRotate] = useState(0);
   const [height, setHeight] = useState(0);
 
+  const doZoom = val => {
+    if (isDisabled) return;
+
+    const newVal = loRound(+val, 1);
+
+    if (newVal >= 0.1 && newVal <= 5) {
+      console.log('ZOOM TO', newVal);
+
+      cropRef.current.zoomTo(newVal);
+      setZoom(newVal);
+    }
+  };
+
+  const doRotate = val => {
+    if (isDisabled) return;
+
+    const newVal = loRound(+val);
+
+    if (newVal >= -180 && newVal <= 180) {
+      console.log('ROTATE TO', newVal);
+
+      cropRef.current.rotateTo(newVal);
+      setRotate(newVal);
+    }
+  };
+
   const handleOpenImageSelector = () => {
+    if (isDisabled) return;
+
     console.log('OPEN IMAGE SELECTOR');
 
     document.querySelector('.upload-file input[type="file"]').click();
   };
 
-  const handleZoomChange = e => {
+  const handleChangeImage = file => {
     if (isDisabled) return;
 
-    setZoom(+e.target.value);
+    const imageDataURL = file.base64;
+
+    console.log('CHANGE NEW IMAGE', { imageDataURL });
+
+    setImageURL(imageDataURL);
+
+    cropRef.current.replace(imageDataURL);
+  };
+
+  const handleZoomChange = e => {
+    doZoom(e.target.value);
   };
 
   const handleZoomOutClick = () => {
-    if (isDisabled) return;
-
-    const newZoom = zoom - 0.1;
-
-    if (newZoom >= 0.1) setZoom(newZoom);
+    doZoom(zoom - 0.1);
   };
 
   const handleZoomInClick = () => {
-    if (isDisabled) return;
-
-    const newZoom = zoom + 0.1;
-
-    if (newZoom <= 5) setZoom(newZoom);
+    doZoom(zoom + 0.1);
   };
 
   const handleRotateChange = e => {
     if (isDisabled) return;
 
-    setRotate(+e.target.value);
+    doRotate(+e.target.value);
   };
 
   const handleRotateLeftClick = () => {
-    if (isDisabled) return;
-
-    const newRotate = rotate - 90;
-
-    if (newRotate >= -180) setRotate(newRotate);
+    doRotate(rotate - 90);
   };
 
   const handleRotateRightClick = () => {
-    if (isDisabled) return;
-
-    const newRotate = rotate + 90;
-
-    if (newRotate <= 180) setRotate(newRotate);
+    doRotate(rotate + 90);
   };
 
   const handleFlipHorizontal = () => {
@@ -122,18 +143,8 @@ function App() {
     console.log('RESET');
 
     setZoom(1);
-    setRotate(50);
-    cropRef.current.scale(1, 1);
-  };
-
-  const handleChangeImage = file => {
-    const imageDataURL = file.base64;
-
-    console.log('CHANGE NEW IMAGE', { imageDataURL });
-
-    setImageURL(imageDataURL);
-
-    cropRef.current.replace(imageDataURL);
+    setRotate(0);
+    cropRef.current.reset();
   };
 
   const handleDownloadImage = () => {
@@ -184,28 +195,6 @@ function App() {
       }
     };
   }, []);
-
-  useEffect(() => {
-    if (isDisabled) return;
-
-    const newZoom = loRound(zoom, 1);
-
-    console.log('ZOOM TO', newZoom);
-
-    try {
-      cropRef.current.zoomTo(newZoom);
-    } catch {
-      //
-    }
-  }, [isDisabled, zoom]);
-
-  useEffect(() => {
-    if (isDisabled) return;
-
-    console.log('ROTATE TO', rotate);
-
-    cropRef.current.rotateTo(rotate);
-  }, [isDisabled, rotate]);
 
   return (
     <Wrapper>
