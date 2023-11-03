@@ -66,7 +66,7 @@ function App() {
     const newVal = loRound(+val, 1);
 
     if (newVal >= 0.1 && newVal <= 5) {
-      console.log('ZOOM TO', newVal);
+      // console.log('ZOOM TO', newVal);
 
       cropRef.current.zoomTo(newVal);
       setZoom(newVal);
@@ -89,7 +89,7 @@ function App() {
   const handleOpenImageSelector = () => {
     if (isDisabled) return;
 
-    console.log('OPEN IMAGE SELECTOR');
+    // console.log('OPEN IMAGE SELECTOR');
 
     document.querySelector('.hidden input[type="file"]').click();
   };
@@ -99,7 +99,7 @@ function App() {
 
     const imageDataURL = file.base64;
 
-    console.log('CHANGE NEW IMAGE', { imageDataURL });
+    // console.log('CHANGE NEW IMAGE', { imageDataURL });
 
     setImageURL(imageDataURL);
 
@@ -136,7 +136,7 @@ function App() {
     const { scaleX, scaleY } = cropRef.current.getData();
     const newScaleX = -1 * scaleX;
 
-    console.log('FLIP HORIZONTAL', { newScaleX, scaleX, scaleY });
+    // console.log('FLIP HORIZONTAL', { newScaleX, scaleX, scaleY });
 
     cropRef.current.scale(newScaleX, scaleY);
   };
@@ -145,13 +145,13 @@ function App() {
     const { scaleX, scaleY } = cropRef.current.getData();
     const newScaleY = -1 * scaleY;
 
-    console.log('FLIP VERTICAL', { newScaleY, scaleX, scaleY });
+    // console.log('FLIP VERTICAL', { newScaleY, scaleX, scaleY });
 
     cropRef.current.scale(scaleX, newScaleY);
   };
 
   const handleReset = () => {
-    console.log('RESET');
+    // console.log('RESET');
 
     setZoom(1);
     setRotate(0);
@@ -163,15 +163,15 @@ function App() {
 
     const ctx = frameRef.current.getContext('2d');
 
-    ctx.clearRect(0, 0, height, height);
+    ctx.clearRect(0, 0, 1000, 1000);
 
     const img1 = new Image();
     img1.onload = () => {
-      ctx.drawImage(img1, 0, 0, height, height);
+      ctx.drawImage(img1, 0, 0, 1000, 1000);
 
       const img2 = new Image();
       img2.onload = () => {
-        ctx.drawImage(img2, 0, 0, height, height);
+        ctx.drawImage(img2, 0, 0, 1000, 1000);
 
         const data = frameRef.current.toDataURL();
 
@@ -179,11 +179,11 @@ function App() {
       };
       img2.src = frameImage;
     };
-    img1.src = imageURL;
+    img1.src = cropRef.current.getCroppedCanvas().toDataURL();
   };
 
   useEffect(() => {
-    console.log('MOUNTED');
+    // console.log('MOUNTED');
 
     setHeight(imageWrapperRef.current.offsetWidth);
 
@@ -191,7 +191,7 @@ function App() {
       setHeight(imageWrapperRef.current.offsetWidth);
     });
 
-    console.log('INIT CROPPER');
+    // console.log('INIT CROPPER');
 
     cropRef.current = new Cropper(document.getElementById('image'), {
       viewMode: 0,
@@ -210,14 +210,14 @@ function App() {
       minCropBoxHeight: Number.MAX_SAFE_INTEGER,
       minCropBoxWidth: Number.MAX_SAFE_INTEGER,
       ready: () => {
-        console.log('READY');
+        // console.log('READY');
 
         setIsDisabled(false);
       }
     });
 
     return () => {
-      console.log('UNMOUNTED');
+      // console.log('UNMOUNTED');
 
       if (cropRef.current) {
         cropRef.current.destroy();
@@ -309,7 +309,7 @@ function App() {
       </Container>
       <div className="hidden">
         <FileBase64 onDone={handleChangeImage} />
-        <canvas ref={frameRef} height={height} width={height} />
+        <canvas ref={frameRef} height={1000} width={1000} />
       </div>
     </Wrapper>
   );
