@@ -6,25 +6,32 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'cropperjs/dist/cropper.css';
-import defaultImage from './assets/default-image.jpg';
+
 import { toRatio, toZoom, toDegree } from './utils';
 import { FiZoomIn, FiZoomOut, FiRotateCcw, FiRotateCw } from 'react-icons/fi';
 import loRound from 'lodash/round';
 import FileBase64 from 'react-file-base64';
 
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'cropperjs/dist/cropper.css';
+
+import defaultImage from './assets/default.png';
+
 const Wrapper = styled.div`
-  background-color: #000;
+  max-width: 600px;
 
   .image-wrapper {
-    width: 300px;
-    height: 300px;
+    border: 1px solid red;
+    max-width: 100%;
 
     img {
       display: block;
-      max-width: 100%;
+      width: 100%;
     }
+  }
+
+  .d-flex.col {
+    gap: 10px;
   }
 
   .upload-file {
@@ -34,9 +41,20 @@ const Wrapper = styled.div`
 
 function App() {
   const cropRef = useRef(null);
+  const imageWrapperRef = useRef(null);
+
+  const [imageURL, setImageURL] = useState(defaultImage);
+
   const [isDisabled, setIsDisabled] = useState(true);
   const [zoom, setZoom] = useState(50);
   const [rotate, setRotate] = useState(50);
+  const [height, setHeight] = useState(0);
+
+  const handleOpenImageSelector = () => {
+    console.log('OPEN IMAGE SELECTOR');
+
+    document.querySelector('.upload-file input[type="file"]').click();
+  };
 
   const handleZoomChange = e => {
     if (isDisabled) return;
@@ -97,19 +115,23 @@ function App() {
   };
 
   const handleReset = () => {
+    console.log('RESET');
+
     setZoom(50);
     setRotate(50);
     cropRef.current.scale(1, 1);
   };
 
-  const handleOpenImageSelector = () => {
-    document.querySelector('.upload-file input[type="file"]').click();
-  };
-
   const handleChangeImage = file => {
+    const imageDataURL = file.base64;
+
+    console.log('CHANGE NEW IMAGE', { imageDataURL });
+
+    setImageURL(imageDataURL);
     setZoom(0);
     setRotate(0);
-    cropRef.current.replace(file.base64);
+
+    cropRef.current.replace(imageDataURL);
   };
 
   const handleDownloadImage = () => {
@@ -123,6 +145,16 @@ function App() {
   };
 
   useEffect(() => {
+    console.log('MOUNTED');
+
+    setHeight(imageWrapperRef.current.offsetWidth);
+
+    addEventListener('resize', () => {
+      setHeight(imageWrapperRef.current.offsetWidth);
+    });
+
+    console.log('INIT CROPPER');
+
     cropRef.current = new Cropper(document.getElementById('image'), {
       viewMode: 0,
       dragMode: 'move',
@@ -136,16 +168,18 @@ function App() {
       background: false,
       cropBoxMovable: false,
       cropBoxResizable: false,
+      autoCrop: true,
+      autoCropArea: 1,
       ready: () => {
         setZoom(50);
         setRotate(50);
         setIsDisabled(false);
-        cropRef.current.setCropBoxData({
-          top: 0,
-          left: 0,
-          width: 300,
-          height: 300
-        });
+        // cropRef.current.setCropBoxData({
+        //   top: 0,
+        //   left: 0,
+        //   width: 300,
+        //   height: 300
+        // });
       },
       zoom: e => {
         const { ratio, originalEvent } = e.detail;
@@ -175,13 +209,17 @@ function App() {
     });
 
     return () => {
-      setIsDisabled(true);
-      cropRef.current.destroy();
+      console.log('UNMOUNTED');
+
+      if (cropRef.current) {
+        cropRef.current.destroy();
+      }
     };
   }, []);
 
   useEffect(() => {
     if (isDisabled) return;
+    console.log('ZOOM TO', toRatio(zoom));
 
     try {
       cropRef.current.zoomTo(toRatio(zoom));
@@ -192,6 +230,7 @@ function App() {
 
   useEffect(() => {
     if (isDisabled) return;
+    console.log('ROTATE TO', toDegree(rotate));
 
     cropRef.current.rotateTo(toDegree(rotate));
   }, [isDisabled, rotate]);
@@ -199,73 +238,61 @@ function App() {
   return (
     <Wrapper>
       <Container className="m3">
-        <Row className="m3">
+        <Row className="mb-3">
           <Col>
-            <div className="image-wrapper">
-              <img id="image" src={defaultImage} alt="image" />
+            <div
+              className="image-wrapper"
+              ref={imageWrapperRef}
+              style={{ height }}
+            >
+              <img id="image" src={imageURL} alt="User photo" />
             </div>
           </Col>
         </Row>
-        <Row className="m3">
-          <Col>
+        <Row className="mb-3">
+          <Col className="d-flex">
             <Button disabled={isDisabled} onClick={handleZoomOutClick}>
               <FiZoomOut />
             </Button>
-          </Col>
-          <Col>
             <Form.Range
               disabled={isDisabled}
               value={zoom}
               onChange={handleZoomChange}
             />
-          </Col>
-          <Col>
             <Button disabled={isDisabled} onClick={handleZoomInClick}>
               <FiZoomIn />
             </Button>
           </Col>
         </Row>
-        <Row className="m3">
-          <Col>
+        <Row className="mb-3">
+          <Col className="d-flex">
             <Button disabled={isDisabled} onClick={handleRotateLeftClick}>
               <FiRotateCcw />
             </Button>
-          </Col>
-          <Col>
             <Form.Range
               disabled={isDisabled}
               value={rotate}
               onChange={handleRotateChange}
             />
-          </Col>
-          <Col>
             <Button disabled={isDisabled} onClick={handleRotateRightClick}>
               <FiRotateCw />
             </Button>
           </Col>
         </Row>
         <Row>
-          <Col>
+          <Col className="d-flex">
             <Button disabled={isDisabled} onClick={handleFlipVertical}>
               Lật dọc
             </Button>
-          </Col>
-          <Col>
             <Button disabled={isDisabled} onClick={handleFlipHorizontal}>
               Lật ngang
             </Button>
-          </Col>
-          <Col>
             <Button disabled={isDisabled} onClick={handleReset}>
               Reset
             </Button>
-          </Col>
-          <Col>
             <Button disabled={isDisabled} onClick={handleOpenImageSelector}>
               Đổi hình
             </Button>
-          </Col>
-          <Col>
             <Button disabled={isDisabled} onClick={handleDownloadImage}>
               Tải hình
             </Button>
