@@ -16,6 +16,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'cropperjs/dist/cropper.css';
 
 import defaultImage from './assets/default.png';
+import frameImage from './assets/frame.png';
 
 const Wrapper = styled.div`
   max-width: 600px;
@@ -23,7 +24,16 @@ const Wrapper = styled.div`
   .image-wrapper {
     max-width: 100%;
 
-    img {
+    position: relative;
+
+    .photo-frame {
+      width: 100%;
+      position: absolute;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .user-photo {
       display: block;
       width: 100%;
     }
@@ -33,13 +43,14 @@ const Wrapper = styled.div`
     gap: 10px;
   }
 
-  .upload-file {
-    display: none;
+  .hidden {
+    // display: none;
   }
 `;
 
 function App() {
   const cropRef = useRef(null);
+  const frameRef = useRef(null);
   const imageWrapperRef = useRef(null);
 
   const [imageURL, setImageURL] = useState(defaultImage);
@@ -80,7 +91,7 @@ function App() {
 
     console.log('OPEN IMAGE SELECTOR');
 
-    document.querySelector('.upload-file input[type="file"]').click();
+    document.querySelector('.hidden input[type="file"]').click();
   };
 
   const handleChangeImage = file => {
@@ -150,9 +161,25 @@ function App() {
   const handleDownloadImage = () => {
     cropRef.current.crop();
 
-    const data = cropRef.current.getCroppedCanvas().toDataURL();
+    const ctx = frameRef.current.getContext('2d');
 
-    saveAs(data, `img-${Date.now()}.png`);
+    ctx.clearRect(0, 0, height, height);
+
+    const img1 = new Image();
+    img1.onload = () => {
+      ctx.drawImage(img1, 0, 0, height, height);
+
+      const img2 = new Image();
+      img2.onload = () => {
+        ctx.drawImage(img2, 0, 0, height, height);
+
+        const data = frameRef.current.toDataURL();
+
+        saveAs(data, `img-${Date.now()}.png`);
+      };
+      img2.src = frameImage;
+    };
+    img1.src = imageURL;
   };
 
   useEffect(() => {
@@ -183,6 +210,8 @@ function App() {
       minCropBoxHeight: Number.MAX_SAFE_INTEGER,
       minCropBoxWidth: Number.MAX_SAFE_INTEGER,
       ready: () => {
+        console.log('READY');
+
         setIsDisabled(false);
       }
     });
@@ -206,7 +235,13 @@ function App() {
               ref={imageWrapperRef}
               style={{ height }}
             >
-              <img id="image" src={imageURL} alt="User photo" />
+              <img className="photo-frame" src={frameImage} alt="Photo frame" />
+              <img
+                className="user-photo"
+                id="image"
+                src={imageURL}
+                alt="User photo"
+              />
             </div>
           </Col>
         </Row>
@@ -216,6 +251,7 @@ function App() {
               <FiZoomOut />
             </Button>
             <Form.Range
+              title="zoom"
               disabled={isDisabled}
               value={zoom}
               onChange={handleZoomChange}
@@ -234,6 +270,7 @@ function App() {
               <FiRotateCcw />
             </Button>
             <Form.Range
+              title="rotate"
               disabled={isDisabled}
               value={rotate}
               onChange={handleRotateChange}
@@ -260,14 +297,19 @@ function App() {
             <Button disabled={isDisabled} onClick={handleOpenImageSelector}>
               Đổi hình
             </Button>
-            <Button disabled={isDisabled} onClick={handleDownloadImage}>
+            <Button
+              disabled={isDisabled}
+              onClick={handleDownloadImage}
+              title="download"
+            >
               Tải hình
             </Button>
           </Col>
         </Row>
       </Container>
-      <div className="upload-file">
+      <div className="hidden">
         <FileBase64 onDone={handleChangeImage} />
+        <canvas ref={frameRef} height={height} width={height} />
       </div>
     </Wrapper>
   );
