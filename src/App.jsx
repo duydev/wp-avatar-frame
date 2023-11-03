@@ -180,6 +180,10 @@ function App() {
       img2.src = frameImage;
     };
     img1.src = cropRef.current.getCroppedCanvas().toDataURL();
+
+    // console.log(cropRef.current.getCroppedCanvas().toDataURL());
+
+    // window.open(, '_blank');
   };
 
   useEffect(() => {
