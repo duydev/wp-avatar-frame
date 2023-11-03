@@ -53,7 +53,8 @@ function App() {
   const frameRef = useRef(null);
   const imageWrapperRef = useRef(null);
 
-  const [imageURL, setImageURL] = useState(defaultImage);
+  const [userPhotoURL, setUserPhotoURL] = useState(null);
+  const [framePhotoURL, setFramePhotoURL] = useState(null);
 
   const [isDisabled, setIsDisabled] = useState(true);
   const [zoom, setZoom] = useState(1);
@@ -101,7 +102,7 @@ function App() {
 
     // console.log('CHANGE NEW IMAGE', { imageDataURL });
 
-    setImageURL(imageDataURL);
+    setUserPhotoURL(imageDataURL);
 
     cropRef.current.replace(imageDataURL);
   };
@@ -177,7 +178,7 @@ function App() {
 
         saveAs(data, `img-${Date.now()}.png`);
       };
-      img2.src = frameImage;
+      img2.src = framePhotoURL;
     };
     img1.src = cropRef.current.getCroppedCanvas().toDataURL();
 
@@ -189,36 +190,50 @@ function App() {
   useEffect(() => {
     // console.log('MOUNTED');
 
+    const userPhoto = document
+      .getElementById('ctxh-avatar-frame')
+      .getAttribute('data-user-photo');
+    const framePhoto = document
+      .getElementById('ctxh-avatar-frame')
+      .getAttribute('data-frame-photo');
+
+    setUserPhotoURL(userPhoto || defaultImage);
+    setFramePhotoURL(framePhoto || frameImage);
+
     setHeight(imageWrapperRef.current.offsetWidth);
 
     addEventListener('resize', () => {
       setHeight(imageWrapperRef.current.offsetWidth);
     });
 
-    // console.log('INIT CROPPER');
+    setTimeout(() => {
+      // console.log('INIT CROPPER');
 
-    cropRef.current = new Cropper(document.getElementById('image'), {
-      viewMode: 0,
-      dragMode: 'move',
-      aspectRatio: 1,
-      responsive: true,
-      modal: false,
-      guides: false,
-      center: false,
-      highlight: false,
-      background: false,
-      cropBoxMovable: false,
-      cropBoxResizable: false,
-      zoomOnTouch: false,
-      zoomOnWheel: false,
-      minCropBoxHeight: Number.MAX_SAFE_INTEGER,
-      minCropBoxWidth: Number.MAX_SAFE_INTEGER,
-      ready: () => {
-        // console.log('READY');
+      if (!cropRef.current) {
+        cropRef.current = new Cropper(document.getElementById('image'), {
+          viewMode: 0,
+          dragMode: 'move',
+          aspectRatio: 1,
+          responsive: true,
+          modal: false,
+          guides: false,
+          center: false,
+          highlight: false,
+          background: false,
+          cropBoxMovable: false,
+          cropBoxResizable: false,
+          zoomOnTouch: false,
+          zoomOnWheel: false,
+          minCropBoxHeight: Number.MAX_SAFE_INTEGER,
+          minCropBoxWidth: Number.MAX_SAFE_INTEGER,
+          ready: () => {
+            // console.log('READY');
 
-        setIsDisabled(false);
+            setIsDisabled(false);
+          }
+        });
       }
-    });
+    }, 0);
 
     return () => {
       // console.log('UNMOUNTED');
@@ -239,11 +254,15 @@ function App() {
               ref={imageWrapperRef}
               style={{ height }}
             >
-              <img className="photo-frame" src={frameImage} alt="Photo frame" />
+              <img
+                className="photo-frame"
+                src={framePhotoURL}
+                alt="Photo frame"
+              />
               <img
                 className="user-photo"
                 id="image"
-                src={imageURL}
+                src={userPhotoURL}
                 alt="User photo"
               />
             </div>
