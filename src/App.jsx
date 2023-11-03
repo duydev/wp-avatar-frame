@@ -7,10 +7,11 @@ import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 
-import { toRatio, toZoom, toDegree } from './utils';
+import { toZoom, toDegree } from './utils';
 import { FiZoomIn, FiZoomOut, FiRotateCcw, FiRotateCw } from 'react-icons/fi';
 import loRound from 'lodash/round';
 import FileBase64 from 'react-file-base64';
+import { saveAs } from 'file-saver';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'cropperjs/dist/cropper.css';
@@ -21,7 +22,6 @@ const Wrapper = styled.div`
   max-width: 600px;
 
   .image-wrapper {
-    border: 1px solid red;
     max-width: 100%;
 
     img {
@@ -46,8 +46,8 @@ function App() {
   const [imageURL, setImageURL] = useState(defaultImage);
 
   const [isDisabled, setIsDisabled] = useState(true);
-  const [zoom, setZoom] = useState(50);
-  const [rotate, setRotate] = useState(50);
+  const [zoom, setZoom] = useState(1);
+  const [rotate, setRotate] = useState(0);
   const [height, setHeight] = useState(0);
 
   const handleOpenImageSelector = () => {
@@ -65,13 +65,17 @@ function App() {
   const handleZoomOutClick = () => {
     if (isDisabled) return;
 
-    setZoom(zoom - 5);
+    const newZoom = zoom - 0.1;
+
+    if (newZoom >= 0.1) setZoom(newZoom);
   };
 
   const handleZoomInClick = () => {
     if (isDisabled) return;
 
-    setZoom(zoom + 5);
+    const newZoom = zoom + 0.1;
+
+    if (newZoom <= 5) setZoom(newZoom);
   };
 
   const handleRotateChange = e => {
@@ -83,26 +87,24 @@ function App() {
   const handleRotateLeftClick = () => {
     if (isDisabled) return;
 
-    const newRotate = rotate - 25;
+    const newRotate = rotate - 90;
 
-    if (newRotate >= 0) {
-      setRotate(newRotate);
-    }
+    if (newRotate >= -180) setRotate(newRotate);
   };
 
   const handleRotateRightClick = () => {
     if (isDisabled) return;
 
-    const newRotate = rotate + 25;
+    const newRotate = rotate + 90;
 
-    if (newRotate <= 100) {
-      setRotate(newRotate);
-    }
+    if (newRotate <= 180) setRotate(newRotate);
   };
 
   const handleFlipHorizontal = () => {
     const { scaleX, scaleY } = cropRef.current.getData();
     const newScaleX = -1 * scaleX;
+
+    console.log('FLIP HORIZONTAL', { newScaleX, scaleX, scaleY });
 
     cropRef.current.scale(newScaleX, scaleY);
   };
@@ -111,13 +113,15 @@ function App() {
     const { scaleX, scaleY } = cropRef.current.getData();
     const newScaleY = -1 * scaleY;
 
+    console.log('FLIP VERTICAL', { newScaleY, scaleX, scaleY });
+
     cropRef.current.scale(scaleX, newScaleY);
   };
 
   const handleReset = () => {
     console.log('RESET');
 
-    setZoom(50);
+    setZoom(1);
     setRotate(50);
     cropRef.current.scale(1, 1);
   };
@@ -128,8 +132,6 @@ function App() {
     console.log('CHANGE NEW IMAGE', { imageDataURL });
 
     setImageURL(imageDataURL);
-    setZoom(0);
-    setRotate(0);
 
     cropRef.current.replace(imageDataURL);
   };
@@ -139,9 +141,7 @@ function App() {
 
     const data = cropRef.current.getCroppedCanvas().toDataURL();
 
-    // cropRef.current.clear();
-
-    console.log(data);
+    saveAs(data, `img-${Date.now()}.png`);
   };
 
   useEffect(() => {
@@ -158,53 +158,21 @@ function App() {
     cropRef.current = new Cropper(document.getElementById('image'), {
       viewMode: 0,
       dragMode: 'move',
-      initialAspectRatio: 1,
       aspectRatio: 1,
       responsive: true,
-      checkCrossOrigin: false,
+      modal: false,
       guides: false,
       center: false,
       highlight: false,
       background: false,
       cropBoxMovable: false,
       cropBoxResizable: false,
-      autoCrop: true,
-      autoCropArea: 1,
+      zoomOnTouch: false,
+      zoomOnWheel: false,
+      minCropBoxHeight: Number.MAX_SAFE_INTEGER,
+      minCropBoxWidth: Number.MAX_SAFE_INTEGER,
       ready: () => {
-        setZoom(50);
-        setRotate(50);
         setIsDisabled(false);
-        // cropRef.current.setCropBoxData({
-        //   top: 0,
-        //   left: 0,
-        //   width: 300,
-        //   height: 300
-        // });
-      },
-      zoom: e => {
-        const { ratio, originalEvent } = e.detail;
-        const newRatio = loRound(ratio, 1);
-
-        if (originalEvent) {
-          e.preventDefault();
-
-          setZoom(toZoom(newRatio));
-          return;
-        }
-
-        if (newRatio > 5) {
-          e.preventDefault();
-
-          setZoom(100);
-          return;
-        }
-
-        if (newRatio < 0.1) {
-          e.preventDefault();
-
-          setZoom(0);
-          return;
-        }
       }
     });
 
@@ -219,10 +187,13 @@ function App() {
 
   useEffect(() => {
     if (isDisabled) return;
-    console.log('ZOOM TO', toRatio(zoom));
+
+    const newZoom = loRound(zoom, 1);
+
+    console.log('ZOOM TO', newZoom);
 
     try {
-      cropRef.current.zoomTo(toRatio(zoom));
+      cropRef.current.zoomTo(newZoom);
     } catch {
       //
     }
@@ -230,9 +201,10 @@ function App() {
 
   useEffect(() => {
     if (isDisabled) return;
-    console.log('ROTATE TO', toDegree(rotate));
 
-    cropRef.current.rotateTo(toDegree(rotate));
+    console.log('ROTATE TO', rotate);
+
+    cropRef.current.rotateTo(rotate);
   }, [isDisabled, rotate]);
 
   return (
@@ -258,6 +230,9 @@ function App() {
               disabled={isDisabled}
               value={zoom}
               onChange={handleZoomChange}
+              min={0.1}
+              max={5}
+              step={0.1}
             />
             <Button disabled={isDisabled} onClick={handleZoomInClick}>
               <FiZoomIn />
@@ -273,6 +248,9 @@ function App() {
               disabled={isDisabled}
               value={rotate}
               onChange={handleRotateChange}
+              min={-180}
+              max={180}
+              step={90}
             />
             <Button disabled={isDisabled} onClick={handleRotateRightClick}>
               <FiRotateCw />
