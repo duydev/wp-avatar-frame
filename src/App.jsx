@@ -44,7 +44,7 @@ const Wrapper = styled.div`
   }
 
   .hidden {
-    // display: none;
+    display: none;
   }
 `;
 
