@@ -50,3 +50,15 @@ function caf_enqueue_scripts_and_styles()
 }
 
 add_action('wp_enqueue_scripts', 'caf_enqueue_scripts_and_styles');
+
+function caf_add_type_attribute($tag, $handle, $src)
+{
+    if ('caf_script' !== $handle) {
+        return $tag;
+    }
+
+    $tag = '<script type="module" id="' . $handle . '" src="' . esc_url($src) . '" defer data-wp-strategy="defer"></script>';
+    return $tag;
+}
+
+add_filter('script_loader_tag', 'caf_add_type_attribute', 10, 3);
