@@ -62,3 +62,55 @@ function caf_add_type_attribute($tag, $handle, $src)
 }
 
 add_filter('script_loader_tag', 'caf_add_type_attribute', 10, 3);
+
+function caf_register_pods_config()
+{
+    if (function_exists('pods_register_config_path')) {
+        pods_register_config_path(plugin_dir_path(__FILE__));
+    }
+}
+
+add_action('init', 'caf_register_pods_config');
+
+function caf_list_all_photo_frames()
+{
+    $posts = get_posts([
+        'post_type' => 'photo_frame',
+        'post_status' => 'published',
+        'orderby' => 'ID',
+        'order' => 'DESC',
+        'posts_per_page' => 5,
+        'paged' => 1
+    ]);
+
+    $result = [];
+
+    foreach ($posts as $post) {
+        $img_url = null;
+
+        if (function_exists('pods_field')) {
+            $pods_img = pods_field('photo_frame', $post->ID, 'photo_frame_img', true);
+
+            if ($pods_img) {
+                $img_url = $pods_img['guid'];
+            }
+        }
+
+        $result[] = [
+            'id' => $post->ID,
+            'title' => $post->post_title,
+            'url' => $img_url,
+            'created_at' => $post->post_date,
+            'updated_at' => $post->post_modified
+        ];
+    }
+
+    return $result;
+}
+
+add_action('rest_api_init', function () {
+    register_rest_route('ctxh-frame-avatar/v1', '/photo_frames/', array(
+        'methods' => 'GET',
+        'callback' => 'caf_list_all_photo_frames'
+    ));
+});
