@@ -200,7 +200,7 @@ function App() {
 
       const framePhoto = loGet(frames, '[0].url');
 
-      console.log(frames, framePhoto);
+      // console.log(frames, framePhoto);
 
       setUserPhotoURL(userPhoto || defaultImage);
       setFramePhotoURL(framePhoto || frameImage);
