@@ -74,6 +74,8 @@ add_action('init', 'caf_register_pods_config');
 
 function caf_list_all_photo_frames()
 {
+    $cdn_domain = get_option('sm_custom_domain');
+
     $posts = get_posts([
         'post_type' => 'photo_frame',
         'post_status' => 'published',
@@ -89,10 +91,12 @@ function caf_list_all_photo_frames()
         $img_url = null;
 
         if (function_exists('pods_field')) {
-            $pods_img = pods_field('photo_frame', $post->ID, 'photo_frame_img', true);
+            $image = pods_field('photo_frame', $post->ID, 'photo_frame_img', true);
 
-            if ($pods_img) {
-                $img_url = $pods_img['guid'];
+
+            if ($image) {
+                $image_path = get_post_meta($image['ID'], '_wp_attached_file', true);
+                $img_url = $cdn_domain ? $cdn_domain . '/' . $image_path : $image['guid'];
             }
         }
 
