@@ -9,11 +9,14 @@ import Button from 'react-bootstrap/Button';
 
 import { FiZoomIn, FiZoomOut, FiRotateCcw, FiRotateCw } from 'react-icons/fi';
 import loRound from 'lodash/round';
+import loGet from 'lodash/get';
 import FileBase64 from 'react-file-base64';
 import { saveAs } from 'file-saver';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'cropperjs/dist/cropper.css';
+
+import { listAllPhotoFrames } from './service';
 
 import defaultImage from './assets/default.png';
 import frameImage from './assets/frame.png';
@@ -190,50 +193,53 @@ function App() {
   useEffect(() => {
     // console.log('MOUNTED');
 
-    const userPhoto = document
-      .getElementById('ctxh-avatar-frame')
-      .getAttribute('data-user-photo');
-    const framePhoto = document
-      .getElementById('ctxh-avatar-frame')
-      .getAttribute('data-frame-photo');
+    listAllPhotoFrames().then(frames => {
+      const userPhoto = document
+        .getElementById('ctxh-avatar-frame')
+        .getAttribute('data-user-photo');
 
-    setUserPhotoURL(userPhoto || defaultImage);
-    setFramePhotoURL(framePhoto || frameImage);
+      const framePhoto = loGet(frames, '[0].url');
 
-    setHeight(imageWrapperRef.current.offsetWidth);
+      console.log(frames, framePhoto);
 
-    addEventListener('resize', () => {
+      setUserPhotoURL(userPhoto || defaultImage);
+      setFramePhotoURL(framePhoto || frameImage);
+
       setHeight(imageWrapperRef.current.offsetWidth);
+
+      addEventListener('resize', () => {
+        setHeight(imageWrapperRef.current.offsetWidth);
+      });
+
+      setTimeout(() => {
+        // console.log('INIT CROPPER');
+
+        if (!cropRef.current) {
+          cropRef.current = new Cropper(document.getElementById('image'), {
+            viewMode: 0,
+            dragMode: 'move',
+            aspectRatio: 1,
+            responsive: true,
+            modal: false,
+            guides: false,
+            center: false,
+            highlight: false,
+            background: false,
+            cropBoxMovable: false,
+            cropBoxResizable: false,
+            zoomOnTouch: false,
+            zoomOnWheel: false,
+            minCropBoxHeight: Number.MAX_SAFE_INTEGER,
+            minCropBoxWidth: Number.MAX_SAFE_INTEGER,
+            ready: () => {
+              // console.log('READY');
+
+              setIsDisabled(false);
+            }
+          });
+        }
+      }, 0);
     });
-
-    setTimeout(() => {
-      // console.log('INIT CROPPER');
-
-      if (!cropRef.current) {
-        cropRef.current = new Cropper(document.getElementById('image'), {
-          viewMode: 0,
-          dragMode: 'move',
-          aspectRatio: 1,
-          responsive: true,
-          modal: false,
-          guides: false,
-          center: false,
-          highlight: false,
-          background: false,
-          cropBoxMovable: false,
-          cropBoxResizable: false,
-          zoomOnTouch: false,
-          zoomOnWheel: false,
-          minCropBoxHeight: Number.MAX_SAFE_INTEGER,
-          minCropBoxWidth: Number.MAX_SAFE_INTEGER,
-          ready: () => {
-            // console.log('READY');
-
-            setIsDisabled(false);
-          }
-        });
-      }
-    }, 0);
 
     return () => {
       // console.log('UNMOUNTED');
